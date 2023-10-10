@@ -1,0 +1,69 @@
+﻿@{
+    ViewData["Title"] = "Users Notebook";
+    string[] TableHeaders = new string[]
+    {
+        "ID",
+        "Name",
+        "Surname",
+        "Date",
+        "Sex",
+        "Phone Number",
+        "Job"
+    };
+}
+
+<div class="table">
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                @{
+                    foreach (var head in TableHeaders)
+                    {
+                        <th>
+                         @head
+                        </th>
+                    }
+                  }
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                if (Model != null)
+                {
+                    foreach (var Data in Model)
+                    {
+                        <tr>
+                            <td>
+                                @Data.ID
+                            </td>
+                            <td>
+                                @Data.Name
+                            </td>
+                            <td>
+                                @Data.Surname
+                            </td>
+                            <td>
+                                @Data.Date.Substring(0,10)
+                            </td>
+                            <td>
+                                @Data.Sex
+                            </td>
+                            <td>
+                                @Data.PhoneNumber
+                            <td>
+                                @Data.Job
+                            </td>
+                        </tr>
+                    }
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<div>
+    <a asp-controller="Home" asp-action="Form">
+        <button>New User</button>
+    </a>
+        
+</div>

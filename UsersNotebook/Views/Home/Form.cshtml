@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Form";
+    string name = Model.name;
+    string surname = Model.surname;
+}
+
+<form method="post" asp-controller="Home" asp-action="Post">
+    <fieldset>
+        <label for="Name">Name: <input id="Name" name="Name" type="text" pattern="[a-zA-Z]+" oninvalid="setCustomValidity('Please enter on alphabets only. ')" maxlength="50" required /></label>
+    </fieldset>
+    <fieldset>
+        <label for="Surname">Surname: <input id="Surname" name="Surname" type="text" pattern="[a-zA-Z]+" oninvalid="setCustomValidity('Please enter on alphabets only. ')" maxlength="150" required /></label>
+    </fieldset>
+    <fieldset>
+        <label for="Date">Birthdate: <input id="Date" name="Date" type="date" required /></label>
+    </fieldset>
+    <fieldset>
+        <label for="Sex">
+            Sex: 
+            <select id="referrer" name="Sex">
+                <option value="">(select one)</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+        </label>
+    </fieldset>
+    <fieldset>
+        <label for="PhoneNumber">Phone Number: <input id="PhoneNumber" name="PhoneNumber" type="tel" pattern="[0-9]*" maxlength="9"  /></label>
+    </fieldset>
+    <fieldset>
+        <label for="Job">Job: <input id="Job" name="Job" type="text" pattern="[a-zA-Z]+" oninvalid="setCustomValidity('Please enter on alphabets only. ')" maxlength="50" /></label>
+    </fieldset>
+    <input type="submit" value="Submit" />
+</form>
+
