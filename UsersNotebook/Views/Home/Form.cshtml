@@ -1,23 +1,36 @@
 ﻿@{
     ViewData["Title"] = "Form";
-    string name = Model.name;
-    string surname = Model.surname;
-}
+    string nameValue = Model != null ? Model.Name : string.Empty;
+    string surnameValue = Model != null ? Model.Surname : string.Empty;
+    string dateValue = Model != null ? Model.Date : "00.00.0000 00:00:00";
+    string datePart = dateValue.Split(' ')[0];
+    DateTime date = DateTime.ParseExact(datePart, "dd.MM.yyyy", System.Globalization.CultureInfo.InvariantCulture);
+    string formattedDate = date.ToString("yyyy-MM-dd");
+    string sexValue = Model != null ? Model.Sex : "";
+    string phoneNumberValue = Model != null ? Model.PhoneNumber : string.Empty;
+    string jobValue = Model != null ? Model.Job : string.Empty;
+ }
+<input id="iSexValue" value="@sexValue" style="display: none;" />
+<input id="iDate" value="@datePart" style="display: none;" />
+<input id="inameValue" value="@nameValue" style="display: none;" />
+<input id="isurnameValue" value="@surnameValue" style="display: none;" />
 
-<form method="post" asp-controller="Home" asp-action="Post">
+<form method ="post">
+    @Html.AntiForgeryToken()
     <fieldset>
-        <label for="Name">Name: <input id="Name" name="Name" type="text" pattern="[a-zA-Z]+" oninvalid="setCustomValidity('Please enter on alphabets only. ')" maxlength="50" required /></label>
+        <label for="Name">Name: <input id="Name" name="Name" type="text" pattern="[a-zA-ZąężółĄĘŻÓŁńŃ\\s-]+" oninvalid="setCustomValidity('Please enter on alphabets only. ')" maxlength="50" required value="@nameValue" /></label>
     </fieldset>
     <fieldset>
-        <label for="Surname">Surname: <input id="Surname" name="Surname" type="text" pattern="[a-zA-Z]+" oninvalid="setCustomValidity('Please enter on alphabets only. ')" maxlength="150" required /></label>
+        <label for="Surname">Surname: <input id="Surname" name="Surname" type="text" pattern="[a-zA-ZąężółĄĘŻÓŁńŃ\\s-]+" oninvalid="setCustomValidity('Please enter on alphabets only. ')" maxlength="150" required value="@surnameValue" /></label>
     </fieldset>
     <fieldset>
-        <label for="Date">Birthdate: <input id="Date" name="Date" type="date" required /></label>
+        <label for="Date">Birthdate: <input id="Date" name="Date" type="date" min="dd-mm-yyyy" value="@formattedDate" required /></label>
     </fieldset>
+    <div id="error-message" style="color: red; display: none;">Invalid date.</div>
     <fieldset>
         <label for="Sex">
             Sex: 
-            <select id="referrer" name="Sex">
+            <select id="referrer" name="Sex" value="@sexValue">
                 <option value="">(select one)</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -25,11 +38,96 @@
         </label>
     </fieldset>
     <fieldset>
-        <label for="PhoneNumber">Phone Number: <input id="PhoneNumber" name="PhoneNumber" type="tel" pattern="[0-9]*" maxlength="9"  /></label>
+        <label for="PhoneNumber">Phone Number: <input id="PhoneNumber" name="PhoneNumber" type="tel" pattern="[0-9]*" maxlength="9" value="@phoneNumberValue" /></label>
     </fieldset>
     <fieldset>
-        <label for="Job">Job: <input id="Job" name="Job" type="text" pattern="[a-zA-Z]+" oninvalid="setCustomValidity('Please enter on alphabets only. ')" maxlength="50" /></label>
+        <label for="Job">Job: <input id="Job" name="Job" type="text" pattern="[a-zA-ZąężółĄĘŻÓŁńŃ\\s-]+" oninvalid="setCustomValidity('Please enter on alphabets only. ')" maxlength="50" value="@jobValue" /></label>
     </fieldset>
-    <input type="submit" value="Submit" />
+    <a href="#" id="addUser">
+        <button class="btn btn-primary">Add User</button>
+    </a>
+    <a href="#" id="updateUser" >
+        <button class="btn btn-primary">Update User</button>
+    </a>
 </form>
 
+<script>
+    var DateInput = document.getElementById("Date");
+    var errorMessage = document.getElementById("error-message");
+    var addUser = document.getElementById("addUser");
+    var updateUser = document.getElementById("updateUser");
+    var oldName = document.getElementById("inameValue");
+    var oldSurname = document.getElementById("isurnameValue");
+    
+
+
+    DateInput.addEventListener("input", function (evt) {
+        let date = new Date(this.value);
+
+        if (date > new Date()) {
+            errorMessage.style.display = "block";
+            errorMessage.textContent = "Date is in the future";
+            DateInput.setCustomValidity("Date is in the future"); 
+            userLink.disabled = true;
+
+        } else {
+            errorMessage.style.display = "none";
+            errorMessage.textContent = "";
+            DateInput.setCustomValidity(""); // Clear the custom validation message
+            userLink.disabled = false;
+        }
+    });
+    
+    
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var inSex = document.getElementById("iSexValue");
+        var sexValue = inSex.value;
+
+        // Find the select element
+        var selectElement = document.getElementById("referrer");
+
+        // Loop through the options and select the one that matches sexValue
+        for (var i = 0; i < selectElement.options.length; i++) {
+            if (selectElement.options[i].value === sexValue) {
+                selectElement.selectedIndex = i;
+                break;
+            }
+        }
+        
+        addUser.addEventListener("click", function (e) {
+            e.preventDefault(); // Prevent the default anchor behavior
+            var name = document.getElementById("Name").value;
+            var surname = document.getElementById("Surname").value;
+            var date = document.getElementById("Date").value;
+            var sex = document.getElementById("referrer").value;
+            var phoneNumber = document.getElementById("PhoneNumber").value;
+            var job = document.getElementById("Job").value;
+            
+                // Construct the URL based on the form values
+                var url = "@Url.Action("Post", "Home")" + "?Name=" + name + "&Surname=" + surname + "&Date=" + date + "&Sex=" + sex + "&PhoneNumber=" + phoneNumber + "&Job=" + job;
+
+            // Navigate to the constructed URL
+            window.location.href = url;
+        });
+        
+        updateUser.addEventListener("click", function (e) {
+            e.preventDefault(); // Prevent the default anchor behavior
+            var name = document.getElementById("Name").value;
+            var surname = document.getElementById("Surname").value;
+            var date = document.getElementById("Date").value;
+            var sex = document.getElementById("referrer").value;
+            var phoneNumber = document.getElementById("PhoneNumber").value;
+            var job = document.getElementById("Job").value;
+            var oldNameValue = document.getElementById("inameValue").value;
+            var oldSurnameValue = document.getElementById("isurnameValue").value;
+
+            // Construct the URL based on the form values
+            var url = "@Url.Action("Update", "Home")" + "?OldName=" + oldNameValue + "&OldSurname=" + oldSurnameValue + "&Name=" + name + "&Surname=" + surname + "&Date=" + date + "&Sex=" + sex + "&PhoneNumber=" + phoneNumber + "&Job=" + job;
+
+            // Navigate to the constructed URL
+            window.location.href = url;
+        });
+        
+    });
+</script>

@@ -2,6 +2,9 @@
 using System.Diagnostics;
 using UsersNotebook.Models;
 using System.Data.SqlClient;
+using PdfSharp.Pdf;
+using System.Text;
+using System.Collections;
 
 namespace UsersNotebook.Controllers
 {
@@ -12,7 +15,9 @@ namespace UsersNotebook.Controllers
         SqlCommand command = new SqlCommand();
         SqlDataReader dataReader;
         List<UsersData> usersList = new List<UsersData>();
+        UsersData userData = new UsersData();
         SendData sendData = new SendData();
+        
 
         public HomeController(ILogger<HomeController> logger)
         {
@@ -21,14 +26,37 @@ namespace UsersNotebook.Controllers
             
         }
 
+        
         public IActionResult Index()
         {
             FetchData();
             return View(usersList);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Form()
         {
-            return View();
+            return View(userData);
+        }
+
+        
+        public ActionResult FormStart(int data)
+        {
+            if (data == 0)
+            {
+                userData = new UsersData();
+                userData.Date = "01.01.2000 00:00:00";
+            }
+            else
+            {
+                FetchData();
+                userData = usersList[data - 1];
+                string sex = userData.Sex.Trim();
+                userData.Sex= sex;
+            }
+
+            return View("Form", userData);
         }
         
         public void FetchData()
@@ -64,6 +92,7 @@ namespace UsersNotebook.Controllers
             }
         }
 
+        
         public ActionResult Post(UsersData userData)
         {
             FetchData();
@@ -73,7 +102,7 @@ namespace UsersNotebook.Controllers
                 {
                     command.CommandType = System.Data.CommandType.Text;
                     int length = usersList.Count +1;
-                    string text = "INSERT Users (ID, Name, Surname, Date, Sex, PhoneNumber, Job) VALUES ('"+ length + "', '" + userData.Name + "', '" + userData.Surname + "', '" + userData.Date + "', '" + userData.Sex + "', '" + userData.PhoneNumber + "', '" + userData.Job + "')" ;
+                    string text = "INSERT Users (ID, Name, Surname, Date, Sex, PhoneNumber, Job) VALUES ('"+ length + "', '" + userData.Name.Trim() + "', '" + userData.Surname.Trim() + "', '" + userData.Date.Trim() + "', '" + userData.Sex.Trim() + "', '" + userData.PhoneNumber.Trim() + "', '" + userData.Job.Trim() + "')" ;
                     command.CommandText = text;
                     command.Connection = connection;
 
@@ -91,7 +120,8 @@ namespace UsersNotebook.Controllers
             return RedirectToAction("Index");
         }
 
-        public ActionResult Post(SendData sendData)
+        
+        public ActionResult Update(SendData sendData)
         {
             FetchData();
             try
@@ -99,8 +129,7 @@ namespace UsersNotebook.Controllers
                 if (sendData != null)
                 {
                     command.CommandType = System.Data.CommandType.Text;
-                    int length = usersList.Count + 1;
-                    string text = "UPDATE Users (Name, Surname, Date, Sex, PhoneNumber, Job) VALUES ('" + sendData.data.Name + "', '" + sendData.data.Surname + "', '" + sendData.data.Date + "', '" + sendData.data.Sex + "', '" + sendData.data.PhoneNumber + "', '" + sendData.data.Job + "') WHERE Name= " + sendData.Name + " Surname= " + sendData.Surname;
+                    string text = "UPDATE Users SET Name = '" + sendData.Name + "', Surname = '" + sendData.Surname + "', Date = '" + sendData.Date + "', Sex = '" + sendData.Sex + "', PhoneNumber = '" + sendData.PhoneNumber + "', Job = '" + sendData.Job + "' WHERE Name = '" + sendData.OldName + "' AND Surname = '" + sendData.OldSurname + "'";
                     command.CommandText = text;
                     command.Connection = connection;
 
@@ -116,6 +145,48 @@ namespace UsersNotebook.Controllers
                 throw ex;
             }
             return RedirectToAction("Index");
+        }
+
+
+
+        public ActionResult GenerateReport()
+        {
+            FetchData();
+            
+            string filename = DateTime.Now.ToString("G");
+            StringBuilder sb = new StringBuilder();
+
+            // Iterate through the usersList and append data to the StringBuilder
+            foreach (UsersData userData in usersList)
+            {
+                var name = userData.Name;
+                var trimmedName = name.Trim();
+                var surname = userData.Surname;
+                var trimmedSur = surname.Trim();
+                var date = userData.Date;
+                string datePart = date.Split(' ')[0];
+                var trimmedDate = datePart.Trim();
+                var sex = userData.Sex;
+                var trimmedSex = sex.Trim();
+                var phone = userData.PhoneNumber;
+                var trimmedPhone = phone.Trim();
+                var job = userData.Job;
+                var trimmedJob = job.Trim();
+
+                sb.AppendLine($"ID: {userData.ID}, Name: {trimmedName}, Surname: {trimmedSur}, Birthdate: {trimmedDate}, Sex: {trimmedSex}, Telephone: {trimmedPhone}, Job: {trimmedJob}");
+                sb.AppendLine();
+                // You can add more properties as needed
+            }
+
+            // Define the file path where you want to save the text file
+            string filePath = filename +  ".txt";
+            string content = sb.ToString();
+            byte[] byteArray = Encoding.UTF8.GetBytes(content);
+            // Save the content of the StringBuilder to a text file
+            return File(byteArray, "text/plain", filePath);
+
+
+
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

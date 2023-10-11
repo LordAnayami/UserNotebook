@@ -37,10 +37,10 @@
                                 @Data.ID
                             </td>
                             <td>
-                                @Data.Name
+                                <a style="color:inherit; text-decoration: none; cursor: text;" href="@Url.Action("FormStart", "Home", new { data = Data.ID })">@Data.Name</a>
                             </td>
                             <td>
-                                @Data.Surname
+                                <a style="color:inherit; text-decoration: none; cursor: text;" href="@Url.Action("FormStart", "Home", new { data = Data.ID })">@Data.Surname</a>
                             </td>
                             <td>
                                 @Data.Date.Substring(0,10)
@@ -62,8 +62,9 @@
 </div>
 
 <div>
-    <a asp-controller="Home" asp-action="Form">
-        <button>New User</button>
+    <a href="@Url.Action("FormStart", "Home", new { data = 0 })">
+        <button class="btn btn-primary">New User</button>
     </a>
-        
+    <a asp-action="GenerateReport" class="btn btn-primary">Generate Report</a>
 </div>
+
